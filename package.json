@@ -1,0 +1,25 @@
+{
+  "name": "chat-server",
+  "version": "0.1.0",
+  "description": "WebSocket + Express chat server",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "clean": "rm -rf node_modules package-lock.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emsa16/chat-server.git"
+  },
+  "author": "Emil Sandberg",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/emsa16/chat-server/issues"
+  },
+  "homepage": "https://github.com/emsa16/chat-server#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "ws": "^6.1.4"
+  }
+}
