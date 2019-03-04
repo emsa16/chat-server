@@ -1,5 +1,5 @@
 /**
- * Server using websockets and express supporting broadcase and echo
+ * Server using Websockets and Express, supporting broadcast and echo
  * through use of subprotocols.
  */
 "use strict";
@@ -14,6 +14,7 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({
     server: server,
     clientTracking: true, // keep track on connected clients,
+    verifyClient: verifyClient,
     handleProtocols: handleProtocols // Manage what subprotocol to use.
 });
 
@@ -24,6 +25,18 @@ app.use(function (req, res) {
     console.log("HTTP request on " + req.url);
     res.send({ msg: "hello" });
 });
+
+
+
+function verifyClient(info) {
+    if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
+        if ("nickname" in info.req.headers && info.req.headers.nickname) {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
 
 
 
@@ -49,6 +62,29 @@ function handleProtocols(protocols /*, request */) {
     }
     return false;
 }
+
+
+function noop() {}
+
+
+
+function heartbeat() {
+    this.isAlive = true;
+}
+
+
+
+const interval = setInterval(function ping() {
+    wss.clients.forEach(function each(ws) {
+        if (ws.isAlive === false) {
+            console.log("Disconnected broken connection");
+            return ws.terminate();
+        }
+
+        ws.isAlive = false;
+        ws.ping(noop);
+    });
+}, 30000);
 
 
 
@@ -108,7 +144,7 @@ function changeNick(ws, nickname) {
 
 
 
-function parseMessage(ws, message) {
+function parseBroadcastMessage(ws, message) {
     let obj;
     try {
         obj = JSON.parse(message);
@@ -145,14 +181,16 @@ function parseMessage(ws, message) {
 
 
 
-function manageBroadCastConn(ws) {
+function manageBroadCastConn(ws, request) {
     console.log(`Connection received. Adding client using '${ws.protocol}' (total: ${wss.clients.size}).`);
+
+    changeNick(ws, request.headers.nickname);
 
     broadcastExcept(ws, `New client connected.`);
 
     ws.on("message", (message) => {
         console.log("Received: %s", message);
-        parseMessage(ws, message);
+        parseBroadcastMessage(ws, message);
     });
 
     ws.on("error", (error) => {
@@ -188,9 +226,12 @@ function manageEchoConn(ws) {
 
 // Setup for websocket requests.
 // Docs: https://github.com/websockets/ws/blob/master/doc/ws.md
-wss.on("connection", (ws/*, req*/) => {
+wss.on("connection", (ws, request) => {
+    ws.isAlive = true;
+    ws.on('pong', heartbeat);
+
     if (ws.protocol === "broadcast") {
-        manageBroadCastConn(ws);
+        manageBroadCastConn(ws, request);
     } else if (ws.protocol === "echo") {
         manageEchoConn(ws);
     } else {

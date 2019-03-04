@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
+    "production": "NODE_ENV='production' node server.js",
     "clean": "rm -rf node_modules package-lock.json"
   },
   "repository": {

@@ -1,53 +1,50 @@
 # Chat server
 
-Uses Express and WebSocket through ws.
+A broadcast chat server that uses Express and Websocket through ws.
 
-Subprotocols available:
-- Broadcast
-- Echo (default)
+The chat uses a broadcast subprotocol, however there is also an echo subprotocol available, and it is also the default protocol.
 
 
 
 ### Chat protocol
 
-Example:
-
+#### Example
     {
         "command": "message",
         "params": {
-            "message": "test"
+            "message": "My first message"
             }
     }    
 
-Commands:
+#### Commands
 - message
     - parameters: message
 - nick
     - parameters: nickname
 
-Response format (control messages???):
-
-    {
-        "message": MESSAGE
-    }    
-
-Response format (broadcast):
-
+#### Broadcast response format:
     {
         "timestamp": TIMESTAMP,
         "data": DATA
+    }    
+
+#### Control message response format
+    {
+        "message": MESSAGE
     }    
 
 
 
 ### Testing
 
-To test the server in the most simple way, use wscat:
+wscat can be used to test that the server works. The following examples assumes the server is running locally on port 1337:
 
-    npm install -g wscat
+    # Has to be installed globally
+    npm install -g wscat                            
 
-Test the different subprotocols like this:
+    # Broadcast subprotocol
+    # Requires that a nickname is included in the header
+    wscat -c ws://localhost:1337/ -s 'broadcast' -H nickname:NICK
 
-    wscat -c ws://localhost:1337/ -s 'broadcast'
-
+    # Echo subprotocol
     wscat -c ws://localhost:1337/ -s 'echo'
