@@ -22,7 +22,7 @@ const wss = new WebSocket.Server({
 
 // Answer on all http requests
 app.use(function (req, res) {
-    console.log("HTTP request on " + req.url);
+    console.log(`HTTP request on ${req.url}`);
     res.send({ msg: "hello" });
 });
 
@@ -30,7 +30,9 @@ app.use(function (req, res) {
 
 function verifyClient(info) {
     if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
-        if ("nickname" in info.req.headers && info.req.headers.nickname) {
+        let parsedUrl = new URL(info.req.url, 'wss://ws.emilsandberg.com');
+        let nickname = parsedUrl.searchParams.get("nickname");
+        if (nickname) {
             return true;
         }
         return false;
@@ -52,12 +54,15 @@ function verifyClient(info) {
 function handleProtocols(protocols /*, request */) {
     console.log(`Incoming protocol requests '${protocols}'.`);
     for (var i=0; i < protocols.length; i++) {
-        if (protocols[i] === "broadcast") {
-            return "broadcast";
-        } else if (protocols[i] === "echo") {
-            return "echo";
-        } else {
-            return "echo";
+        switch (protocols[i]) {
+            case "broadcast":
+                return "broadcast";
+                break;
+            case "echo":
+                //Intentional fallthrough
+            default:
+                return "echo";
+                break;
         }
     }
     return false;
@@ -75,7 +80,7 @@ function heartbeat() {
 
 
 const interval = setInterval(function ping() {
-    wss.clients.forEach(function each(ws) {
+    wss.clients.forEach((ws) => {
         if (ws.isAlive === false) {
             console.log("Disconnected broken connection");
             return ws.terminate();
@@ -88,6 +93,18 @@ const interval = setInterval(function ping() {
 
 
 
+function sendMessage(ws, data, origin="server", nickname="Server") {
+    let msg =  {
+        timestamp: Date(),
+        origin: origin,
+        nickname: nickname,
+        data: data
+    }
+    ws.send(JSON.stringify(msg));
+}
+
+
+
 /**
  * Broadcast data to everyone except one self (ws).
  *
@@ -96,20 +113,14 @@ const interval = setInterval(function ping() {
  *
  * @return {void}
  */
-function broadcastExcept(ws, data) {
+function broadcastExcept(ws, data, origin = "user") {
     let clients = 0;
 
     wss.clients.forEach((client) => {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
             clients++;
-            let nickname = ('nickname' in ws) ? ws.nickname : "";
-            let msg = {
-                timestamp: Date(),
-                nickname: nickname,
-                data: data
-            };
-
-            client.send(JSON.stringify(msg));
+            let nickname = ('nickname' in ws && ws.nickname) ? ws.nickname : "";
+            sendMessage(client, data, origin, nickname);
         }
     });
     console.log(`Broadcasted data to ${clients} clients (total: ${wss.clients.size}).`);
@@ -117,28 +128,20 @@ function broadcastExcept(ws, data) {
 
 
 
-function sendMessage(ws, message) {
-    let data =  {
-        message: message
-    }
-    ws.send(JSON.stringify(data));
+function setNick(ws, nickname) {
+    ws.nickname = nickname;
+    console.log(`Set nick to ${nickname}`);
+    sendMessage(ws, `Nickname set to ${nickname}`);
 }
 
 
 
 function changeNick(ws, nickname) {
-    console.log("Changing nickname");
+    let oldnick = ('nickname' in ws) ? ws.nickname : "";
+    ws.nickname = nickname;
 
-    wss.clients.forEach((client) => {
-        if (client === ws) {
-            if ('nickname' in client) {
-                console.log("Old nickname: " + client.nickname);
-            }
-            client.nickname = nickname;
-            console.log("New nickname: " + client.nickname);
-        }
-    });
-
+    console.log(`${oldnick} changed nick to ${nickname}`);
+    broadcastExcept(ws, `${oldnick} changed nick to ${nickname}`, "server");
     sendMessage(ws, `Nick changed to ${nickname}`);
 }
 
@@ -150,14 +153,14 @@ function parseBroadcastMessage(ws, message) {
         obj = JSON.parse(message);
     }
     catch(error) {
-        console.log("Invalid JSON: " + error);
+        console.log(`Invalid JSON: ${error}`);
         sendMessage(ws, "Error: Invalid message format");
         return;
     }
 
     switch (obj.command) {
         case "nick":
-            if ('nickname' in obj.params) {
+            if ('nickname' in obj.params && obj.params.nickname) {
                 changeNick(ws, obj.params.nickname);
             } else {
                 console.log("Missing nickname");
@@ -165,7 +168,7 @@ function parseBroadcastMessage(ws, message) {
             }
             break;
         case "message":
-            if ('message' in obj.params) {
+            if ('message' in obj.params && obj.params.message) {
                 broadcastExcept(ws, obj.params.message);
             } else {
                 console.log("Empty message");
@@ -184,12 +187,14 @@ function parseBroadcastMessage(ws, message) {
 function manageBroadCastConn(ws, request) {
     console.log(`Connection received. Adding client using '${ws.protocol}' (total: ${wss.clients.size}).`);
 
-    changeNick(ws, request.headers.nickname);
+    let parsedUrl = new URL(request.url, 'wss://ws.emilsandberg.com');
+    let nickname = parsedUrl.searchParams.get("nickname");
+    setNick(ws, nickname);
 
-    broadcastExcept(ws, `New client connected.`);
+    broadcastExcept(ws, `${ws.nickname} has connected`, "server");
 
     ws.on("message", (message) => {
-        console.log("Received: %s", message);
+        console.log(`Received: ${message}`);
         parseBroadcastMessage(ws, message);
     });
 
@@ -199,7 +204,7 @@ function manageBroadCastConn(ws, request) {
 
     ws.on("close", (code, reason) => {
         console.log(`Closing connection (remaining: ${wss.clients.size}): ${code} ${reason}`);
-        broadcastExcept(ws, `Client disconnected.`);
+        broadcastExcept(ws, `${ws.nickname} has disconnected`, "server");
     });
 }
 
@@ -209,8 +214,8 @@ function manageEchoConn(ws) {
     console.log("Connection received.");
 
     ws.on("message", (message) => {
-        console.log("Received: %s", message);
-        sendMessage(ws, message);
+        console.log(`Received: ${message}`);
+        ws.send(message);
     });
 
     ws.on("error", (error) => {
@@ -230,12 +235,15 @@ wss.on("connection", (ws, request) => {
     ws.isAlive = true;
     ws.on('pong', heartbeat);
 
-    if (ws.protocol === "broadcast") {
-        manageBroadCastConn(ws, request);
-    } else if (ws.protocol === "echo") {
-        manageEchoConn(ws);
-    } else {
-        manageEchoConn(ws);
+    switch (ws.protocol) {
+        case "broadcast":
+            manageBroadCastConn(ws, request);
+            break;
+        case "echo":
+            //Intentional fallthrough
+        default:
+            manageEchoConn(ws);
+            break;
     }
 });
 

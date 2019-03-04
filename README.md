@@ -2,7 +2,17 @@
 
 A broadcast chat server that uses Express and Websocket through ws.
 
-The chat uses a broadcast subprotocol, however there is also an echo subprotocol available, and it is also the default protocol.
+The chat uses a broadcast subprotocol, however there is also a simple echo subprotocol available, and it is also the default protocol.
+
+Using the broadcast subprotocol requires that a nickname is added in the connection request URL, in the form of '?nickname=NICK'.
+
+
+
+### Running the server
+Adding DBWEBB_PORT=XXXX before any command sets server port, default is 1337.
+
+    $ npm start                 # Runs server in development mode
+    $ npm run production        # Runs server in production mode
 
 
 
@@ -18,19 +28,18 @@ The chat uses a broadcast subprotocol, however there is also an echo subprotocol
 
 #### Commands
 - message
+    - Sends a message to all other users connected to chat
     - parameters: message
 - nick
+    - Changes nickname
     - parameters: nickname
 
-#### Broadcast response format:
+#### Response format:
     {
-        "timestamp": TIMESTAMP,
-        "data": DATA
-    }    
-
-#### Control message response format
-    {
-        "message": MESSAGE
+        "timestamp": TIMESTAMP,     # server timestamp
+        "origin": "user"/"server"   # was the message sent from a user or the server?
+        "nickname": NICKNAME        # nickname of message author
+        "data": DATA                # message content
     }    
 
 
@@ -43,8 +52,8 @@ wscat can be used to test that the server works. The following examples assumes 
     npm install -g wscat                            
 
     # Broadcast subprotocol
-    # Requires that a nickname is included in the header
-    wscat -c ws://localhost:1337/ -s 'broadcast' -H nickname:NICK
+    # Requires that a nickname is provided as a URL query
+    wscat -c ws://localhost:1337/?nickname=NICK -s 'broadcast'
 
     # Echo subprotocol
     wscat -c ws://localhost:1337/ -s 'echo'
