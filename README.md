@@ -46,14 +46,20 @@ Adding DBWEBB_PORT=XXXX before any command sets server port, default is 1337.
 
 ### Testing
 
-wscat can be used to test that the server works. The following examples assumes the server is running locally on port 1337:
+wscat can be used to test that the server works:
 
     # Has to be installed globally
     npm install -g wscat                            
 
     # Broadcast subprotocol
     # Requires that a nickname is provided as a URL query
-    wscat -c ws://localhost:1337/?nickname=NICK -s 'broadcast'
+    wscat -c ws://[ADDRESS]?nickname=[NICK] -s 'broadcast'
 
     # Echo subprotocol
-    wscat -c ws://localhost:1337/ -s 'echo'
+    wscat -c ws://[ADDRESS] -s 'echo'
+
+
+
+### Client
+
+There is an example for a simple client using plain Javascript, in the client/ folder.

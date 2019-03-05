@@ -5,8 +5,8 @@
     "use strict";
 
     let websocket;
-    let url         = "ws://localhost:1337";
-    // let url         = "wss://ws.emilsandberg.com/";
+    // let url         = "ws://localhost:1337";
+    let url         = "wss://ws.emilsandberg.com/";
 
     let connect     = document.getElementById("connect");
     let connectForm = document.getElementById("connect_form");

@@ -30,6 +30,10 @@ app.use(function (req, res) {
 
 function verifyClient(info) {
     if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
+        if ("https://me.emilsandberg.com" !== info.origin) {
+            return false;
+        }
+
         let parsedUrl = new URL(info.req.url, 'wss://ws.emilsandberg.com');
         let nickname = parsedUrl.searchParams.get("nickname");
         if (nickname) {
