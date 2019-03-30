@@ -1,3 +1,4 @@
+/*eslint max-len: "off", no-unused-vars: "off"*/
 /**
  * Server using Websockets and Express, supporting broadcast and echo
  * through use of subprotocols.
@@ -31,13 +32,14 @@ app.use(function (req, res) {
 
 
 function verifyClient(info) {
-    if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
+    if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
         if (allowedClientUrl && allowedClientUrl !== info.origin) {
             return false;
         }
 
         let parsedUrl = new URL(info.req.url, serverUrl);
         let nickname = parsedUrl.searchParams.get("nickname");
+
         if (nickname) {
             return true;
         }
@@ -63,12 +65,10 @@ function handleProtocols(protocols /*, request */) {
         switch (protocols[i]) {
             case "broadcast":
                 return "broadcast";
-                break;
             case "echo":
                 //Intentional fallthrough
             default:
                 return "echo";
-                break;
         }
     }
     return false;
@@ -105,7 +105,8 @@ function sendMessage(ws, data, origin="server", nickname="Server") {
         origin: origin,
         nickname: nickname,
         data: data
-    }
+    };
+
     ws.send(JSON.stringify(msg));
 }
 
@@ -126,6 +127,7 @@ function broadcastExcept(ws, data, origin = "user") {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
             clients++;
             let nickname = ('nickname' in ws && ws.nickname) ? ws.nickname : "";
+
             sendMessage(client, data, origin, nickname);
         }
     });
@@ -144,6 +146,7 @@ function setNick(ws, nickname) {
 
 function changeNick(ws, nickname) {
     let oldnick = ('nickname' in ws) ? ws.nickname : "";
+
     ws.nickname = nickname;
 
     console.log(`${oldnick} changed nick to ${nickname}`);
@@ -155,10 +158,10 @@ function changeNick(ws, nickname) {
 
 function parseBroadcastMessage(ws, message) {
     let obj;
+
     try {
         obj = JSON.parse(message);
-    }
-    catch(error) {
+    } catch (error) {
         console.log(`Invalid JSON: ${error}`);
         sendMessage(ws, "Error: Invalid message format");
         return;
@@ -195,6 +198,7 @@ function manageBroadCastConn(ws, request) {
 
     let parsedUrl = new URL(request.url, serverUrl);
     let nickname = parsedUrl.searchParams.get("nickname");
+
     setNick(ws, nickname);
 
     broadcastExcept(ws, `${ws.nickname} has connected`, "server");

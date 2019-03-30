@@ -1,3 +1,4 @@
+/*eslint max-len: "off"*/
 /**
  * To setup a websocket connection, and nothing more.
  */
@@ -40,8 +41,7 @@
 
         try {
             msg = JSON.parse(message);
-        }
-        catch(error) {
+        } catch (error) {
             console.log(`Invalid JSON: ${error}`);
             return;
         }
@@ -65,11 +65,14 @@
         let data = {"command": "message", "params": {"message": messageText}};
         let re = /^\/([A-Za-z]+)\s*(\w*)/; // Regex matching '/' commands followed by text, e.g. /nick emil
         let result = re.exec(messageText);
+
         if (result && result.length > 1) {
+            let nick;
             let command = result[1];
+
             switch (command) {
                 case 'nick':
-                    let nick = result[2] ? result[2]: "";
+                    nick = result[2] ? result[2]: "";
                     data = {"command": "nick", "params": {"nickname": nick}};
                     break;
                 default:

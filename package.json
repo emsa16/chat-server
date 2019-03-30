@@ -3,11 +3,18 @@
   "version": "2.0.0",
   "description": "WebSocket + Express chat server",
   "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "pretest": "npm run htmlhint && npm run stylelint && npm run eslint",
+    "test": "jest --coverage",
     "start": "node server.js",
     "production": "NODE_ENV='production' node server.js",
-    "clean": "rm -rf node_modules package-lock.json"
+    "clean": "rm -rf node_modules package-lock.json",
+    "htmlhint": "[ ! -f .htmlhintrc ] || htmlhint --ignore build/**,node_modules/**,coverage/** | grep -v 'Config loaded:'",
+    "stylelint": "[ ! -f .stylelintrc.json ] || stylelint **/*.css",
+    "eslint": "[ ! -f .eslintrc.json ] || eslint ."
   },
   "repository": {
     "type": "git",
@@ -22,5 +29,12 @@
   "dependencies": {
     "express": "^4.16.4",
     "ws": "^6.1.4"
+  },
+  "devDependencies": {
+    "mock-socket": "^8.0.5",
+    "eslint": "^5.12.1",
+    "htmlhint": "^0.10.1",
+    "stylelint": "^9.10.1",
+    "jest": "^24.1.0"
   }
 }
