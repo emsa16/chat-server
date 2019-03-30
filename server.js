@@ -8,6 +8,8 @@ const port = process.env.DBWEBB_PORT || 1337;
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
+const serverUrl = process.env.SERVER_URL || `ws://localhost:${port}`;
+const allowedClientUrl = process.env.LIMIT_CLIENT_TO || "";
 
 const app = express();
 const server = http.createServer(app);
@@ -30,11 +32,11 @@ app.use(function (req, res) {
 
 function verifyClient(info) {
     if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
-        if ("https://me.emilsandberg.com" !== info.origin) {
+        if (allowedClientUrl && allowedClientUrl !== info.origin) {
             return false;
         }
 
-        let parsedUrl = new URL(info.req.url, 'wss://ws.emilsandberg.com');
+        let parsedUrl = new URL(info.req.url, serverUrl);
         let nickname = parsedUrl.searchParams.get("nickname");
         if (nickname) {
             return true;
@@ -191,7 +193,7 @@ function parseBroadcastMessage(ws, message) {
 function manageBroadCastConn(ws, request) {
     console.log(`Connection received. Adding client using '${ws.protocol}' (total: ${wss.clients.size}).`);
 
-    let parsedUrl = new URL(request.url, 'wss://ws.emilsandberg.com');
+    let parsedUrl = new URL(request.url, serverUrl);
     let nickname = parsedUrl.searchParams.get("nickname");
     setNick(ws, nickname);
 

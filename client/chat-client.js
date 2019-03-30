@@ -5,8 +5,7 @@
     "use strict";
 
     let websocket;
-    // let url         = "ws://localhost:1337";
-    let url         = "wss://ws.emilsandberg.com/";
+    let serverUrl   = "ws://localhost:1337"; // Replace with your development or production chat server
 
     let connect     = document.getElementById("connect");
     let connectForm = document.getElementById("connect_form");
@@ -93,7 +92,7 @@
             return;
         }
 
-        let fullUrl = `${url}?nickname=${nickname.value}`;
+        let fullUrl = `${serverUrl}?nickname=${nickname.value}`;
 
         console.log(`Connecting to: ${fullUrl}`);
         websocket = new WebSocket(fullUrl, 'broadcast');
