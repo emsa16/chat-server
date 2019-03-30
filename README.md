@@ -1,5 +1,6 @@
 # Chat server
 
+[![npm](https://img.shields.io/npm/v/@emsa16/chat-server.svg)](https://www.npmjs.com/package/@emsa16/chat-server)
 [![Build Status](https://travis-ci.org/emsa16/chat-server.svg?branch=master)](https://travis-ci.org/emsa16/chat-server)
 [![Maintainability](https://api.codeclimate.com/v1/badges/fb770235fdbaa11416bf/maintainability)](https://codeclimate.com/github/emsa16/chat-server/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/fb770235fdbaa11416bf/test_coverage)](https://codeclimate.com/github/emsa16/chat-server/test_coverage)

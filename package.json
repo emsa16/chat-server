@@ -1,11 +1,16 @@
 {
-  "name": "chat-server",
+  "name": "@emsa16/chat-server",
   "version": "2.0.0",
   "description": "WebSocket + Express chat server",
   "main": "server.js",
   "directories": {
     "test": "test"
   },
+  "keywords": [
+      "chat server",
+      "websocket",
+      "express"
+  ],
   "scripts": {
     "pretest": "npm run htmlhint && npm run stylelint && npm run eslint",
     "test": "jest --coverage",
@@ -15,6 +20,13 @@
     "htmlhint": "[ ! -f .htmlhintrc ] || htmlhint --ignore build/**,node_modules/**,coverage/** | grep -v 'Config loaded:'",
     "stylelint": "[ ! -f .stylelintrc.json ] || stylelint **/*.css",
     "eslint": "[ ! -f .eslintrc.json ] || eslint ."
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!**/node_modules/**",
+      "!**/coverage/**"
+    ]
   },
   "repository": {
     "type": "git",
@@ -31,10 +43,11 @@
     "ws": "^6.1.4"
   },
   "devDependencies": {
-    "mock-socket": "^8.0.5",
     "eslint": "^5.12.1",
     "htmlhint": "^0.10.1",
+    "jest": "^24.1.0",
+    "mock-socket": "^8.0.5",
     "stylelint": "^9.10.1",
-    "jest": "^24.1.0"
+    "supertest": "^4.0.2"
   }
 }
