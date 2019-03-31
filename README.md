@@ -31,9 +31,9 @@ From Github:
     $ npm run production        # Runs server in production mode
 
 The following environment variables can be set by adding these before above commands:
-- DBWEBB_PORT=XXXX - Set server port (default: 1337)
-- SERVER_URL="URL" - Set server URL (default: ws://localhost:1337)
-- LIMIT_CLIENT_TO="URL" - Set if wanting to block connections from anywhere else than specific client URL (default: "")
+- WS_DBWEBB_PORT=XXXX - Set server port (default: 1337)
+- WS_SERVER_URL="URL" - Set server URL (default: ws://localhost:1337)
+- WS_LIMIT_CLIENT_TO="URL" - Set if wanting to block connections from anywhere else than specific client URL (default: "")
 
 
 ### Chat protocol

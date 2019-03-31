@@ -5,12 +5,12 @@
  */
 "use strict";
 
-const port = process.env.DBWEBB_PORT || 1337;
+const port = process.env.WS_DBWEBB_PORT || 1337;
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
-const serverUrl = process.env.SERVER_URL || `ws://localhost:${port}`;
-const allowedClientUrl = process.env.LIMIT_CLIENT_TO || "";
+const serverUrl = process.env.WS_SERVER_URL || `ws://localhost:${port}`;
+const allowedClientUrl = process.env.WS_LIMIT_CLIENT_TO || "";
 
 const app = express();
 const server = http.createServer(app);
