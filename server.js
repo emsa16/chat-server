@@ -262,3 +262,11 @@ wss.on("connection", (ws, request) => {
 server.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
 });
+
+function stop() {
+    console.log("inside");
+    server.close();
+}
+
+module.exports = server;
+module.exports.stop = stop;

@@ -14,6 +14,12 @@ Using the broadcast subprotocol requires that a nickname is added in the URL whe
 
 ### Installation
 
+From npm:
+
+    $ npm install @emsa16/chat-server
+
+From Github:
+
     $ git clone https://github.com/emsa16/chat-server
     $ cd chat-server
     $ npm install

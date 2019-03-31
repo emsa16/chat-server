@@ -7,13 +7,13 @@
     "test": "test"
   },
   "keywords": [
-      "chat server",
-      "websocket",
-      "express"
+    "chat server",
+    "websocket",
+    "express"
   ],
   "scripts": {
     "pretest": "npm run htmlhint && npm run stylelint && npm run eslint",
-    "test": "jest --coverage",
+    "test": "jest --coverage --detectOpenHandles --verbose --silent",
     "start": "node server.js",
     "production": "NODE_ENV='production' node server.js",
     "clean": "rm -rf node_modules package-lock.json",
@@ -46,7 +46,6 @@
     "eslint": "^5.12.1",
     "htmlhint": "^0.10.1",
     "jest": "^24.1.0",
-    "mock-socket": "^8.0.5",
     "stylelint": "^9.10.1",
     "supertest": "^4.0.2"
   }
