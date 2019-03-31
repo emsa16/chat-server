@@ -27,6 +27,12 @@ From Github:
 
 ### Running the server
 
+If the server is to be run as a part of a bigger application, all that is needed to start the server is to include the following line somewhere:
+
+    var chatServer = require('@emsa16/chat-server');
+
+If the server is to be run as a separate service, it is better to clone the Github repo and run one of the following commands:
+
     $ npm start                 # Runs server in development mode
     $ npm run production        # Runs server in production mode
 
