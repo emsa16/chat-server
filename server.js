@@ -31,21 +31,21 @@ app.use(function (req, res) {
 
 
 
-function verifyClient(info) {
+function verifyClient(info, callback) {
     if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
         if (allowedClientUrl && allowedClientUrl !== info.origin) {
-            return false;
+            return callback(false, 403, 'Unauthorized: forbidden origin', '');
         }
 
         let parsedUrl = new URL(info.req.url, serverUrl);
         let nickname = parsedUrl.searchParams.get("nickname");
 
         if (nickname) {
-            return true;
+            return callback(true);
         }
-        return false;
+        return callback(false, 401, 'Unauthorized: missing nickname', '');
     }
-    return true;
+    return callback(true);
 }
 
 
@@ -264,7 +264,6 @@ server.listen(port, () => {
 });
 
 function stop() {
-    console.log("inside");
     server.close();
 }
 

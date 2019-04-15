@@ -42,6 +42,19 @@ describe('Testing chat server', () => {
         });
     });
 
+    test('Websocket broadcast server - Missing nickname for registration', done => {
+        let client = new WebSocket(`ws://localhost:1337`, 'broadcast');
+
+        client.on('error', (data) => {
+            expect(data.message).toBe("Unexpected server response: 401");
+        });
+
+        client.on('close', (code) => {
+            expect(code).toEqual(1006);
+            done();
+        });
+    });
+
     test('Websocket broadcast server - Nickname is registered', done => {
         let client = new WebSocket(`ws://localhost:1337?nickname=emil`, 'broadcast');
 
