@@ -29,19 +29,37 @@ app.use(function (req, res) {
 
 
 
-function verifyClient(info, callback) {
+let auth = "";
+
+//Sets optional token authentication module
+function setAuth(authMod) {
+    auth = authMod;
+}
+
+
+
+async function verifyClient(info, callback) {
     if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
         if (allowedClientUrl && allowedClientUrl !== info.origin) {
             return callback(false, 403, 'Unauthorized: forbidden origin', '');
         }
 
         let parsedUrl = new URL(info.req.url, serverUrl);
+
+        if (auth) {
+            const token = parsedUrl.searchParams.get("token");
+            const res = await auth.checkTokenDirect(token);
+
+            if (!res['status']) {
+                return callback(false, 401, 'Unauthorized: ' + res['message'], '');
+            }
+        }
+
         let nickname = parsedUrl.searchParams.get("nickname");
 
-        if (nickname) {
-            return callback(true);
+        if (!nickname) {
+            return callback(false, 401, 'Unauthorized: missing nickname', '');
         }
-        return callback(false, 401, 'Unauthorized: missing nickname', '');
     }
     return callback(true);
 }
@@ -272,5 +290,6 @@ function stop() {
 }
 
 module.exports = server;
+module.exports.setAuth = setAuth;
 module.exports.start = start;
 module.exports.stop = stop;

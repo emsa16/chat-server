@@ -48,6 +48,14 @@ The following environment variables can be set by adding these before above comm
 - WS_LIMIT_CLIENT_TO="URL" - Set if wanting to block connections from anywhere else than specific client URL (default: "")
 
 
+### Authentication
+It is possible to add an optional authentication module which checks during connection if the user's token is valid. The authentication module is added like this:
+
+    chatServer.setAuth(authentication-module);
+
+where `authentication-module` is the variable that holds that module. To be compatible with this chat module, the auth module has to be a token-based authentication system, needs to have an asynchronous function called checkTokenDirect(token), and tokens must be sent as a URL parameter named token, i.e. `?token=TOKEN`.
+
+
 ### Chat protocol
 
 #### Example
