@@ -6,6 +6,10 @@ const WebSocket = require("ws");
 let server = require('../server');
 
 describe('Testing chat server', () => {
+    beforeAll(() => {
+        require('../server').start();
+    });
+
     afterAll(() => {
         require('../server').stop();
     });

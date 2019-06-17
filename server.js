@@ -5,12 +5,10 @@
  */
 "use strict";
 
-const port = process.env.WS_DBWEBB_PORT || 1337;
+let port, serverUrl, allowedClientUrl;
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
-const serverUrl = process.env.WS_SERVER_URL || `ws://localhost:${port}`;
-const allowedClientUrl = process.env.WS_LIMIT_CLIENT_TO || "";
 
 const app = express();
 const server = http.createServer(app);
@@ -258,14 +256,21 @@ wss.on("connection", (ws, request) => {
 });
 
 
-// Startup server
-server.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-});
+function start(dbwebbPort, wsServerUrl, wsLimitClientTo) {
+    port = dbwebbPort || process.env.WS_DBWEBB_PORT || 1337;
+    serverUrl = wsServerUrl || process.env.WS_SERVER_URL || `ws://localhost:${port}`;
+    allowedClientUrl = wsLimitClientTo || process.env.WS_LIMIT_CLIENT_TO || "";
+
+    // Start up server
+    server.listen(port, () => {
+        console.log(`chat-server is listening on port ${port}`);
+    });
+}
 
 function stop() {
     server.close();
 }
 
 module.exports = server;
+module.exports.start = start;
 module.exports.stop = stop;

@@ -14,8 +14,8 @@
   "scripts": {
     "pretest": "npm run htmlhint && npm run stylelint && npm run eslint",
     "test": "jest --coverage --detectOpenHandles --verbose --silent",
-    "start": "node server.js",
-    "production": "NODE_ENV='production' node server.js",
+    "start": "node index.js",
+    "production": "NODE_ENV='production' node index.js",
     "clean": "rm -rf node_modules package-lock.json",
     "htmlhint": "[ ! -f .htmlhintrc ] || htmlhint --ignore build/**,node_modules/**,coverage/** | grep -v 'Config loaded:'",
     "stylelint": "[ ! -f .stylelintrc.json ] || stylelint **/*.css",
@@ -24,6 +24,7 @@
   "jest": {
     "collectCoverageFrom": [
       "**/*.js",
+      "!**/index.js",
       "!**/node_modules/**",
       "!**/coverage/**"
     ]

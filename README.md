@@ -14,24 +14,30 @@ Using the broadcast subprotocol requires that a nickname is added in the URL whe
 
 ### Installation
 
-From npm:
-
     $ npm install @emsa16/chat-server
 
-From Github:
+
+### Running the server
+
+Include the following lines to run the chat server in your application:
+
+    var chatServer = require('@emsa16/chat-server');
+    chatServer.start([dbwebbPort] [, wsServerUrl] [, wsLimitClientTo]);
+
+The arguments to chatServer.start() are all optional and can be used to set the following:
+- `dbwebbPort` - Set server port (default: 1337)
+- `wsServerUrl` - Set server URL (default: ws://localhost:1337)
+- `wsLimitClientTo` - Set if wanting to block connections from anywhere else than specific client URL (default: "")
+
+To run it as a separate process and with its output in a separate terminal, the above code can be put in a separate file, e.g. `chat-server.js` and run by executing a command like `node chat-server.js`.
+
+Another option for running the chat server as a separate service is to install it from the Github repo directly:
 
     $ git clone https://github.com/emsa16/chat-server
     $ cd chat-server
     $ npm install
 
-
-### Running the server
-
-If the server is to be run as a part of a bigger application, all that is needed to start the server is to include the following line somewhere:
-
-    var chatServer = require('@emsa16/chat-server');
-
-If the server is to be run as a separate service, it is better to clone the Github repo and run one of the following commands:
+Now one of the following commands can be run:
 
     $ npm start                 # Runs server in development mode
     $ npm run production        # Runs server in production mode
