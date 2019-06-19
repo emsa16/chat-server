@@ -18,16 +18,17 @@ Using the broadcast subprotocol requires that a nickname is added in the URL whe
 
 
 ### Running the server
-
 Include the following lines to run the chat server in your application:
 
     var chatServer = require('@emsa16/chat-server');
-    chatServer.start([dbwebbPort] [, wsServerUrl] [, wsLimitClientTo]);
+    chatServer.start([dbwebbPort] [, wsServerUrl] [, wsLimitClientTo] [, authMod] [, dbMod]);
 
 The arguments to chatServer.start() are all optional and can be used to set the following:
 - `dbwebbPort` - Set server port (default: 1337)
 - `wsServerUrl` - Set server URL (default: ws://localhost:1337)
 - `wsLimitClientTo` - Set if wanting to block connections from anywhere else than specific client URL (default: "")
+- `authMod` - inject authentication module
+- `dbMod` - inject database module
 
 To run it as a separate process and with its output in a separate terminal, the above code can be put in a separate file, e.g. `chat-server.js` and run by executing a command like `node chat-server.js`.
 
@@ -49,11 +50,15 @@ The following environment variables can be set by adding these before above comm
 
 
 ### Authentication
-It is possible to add an optional authentication module which checks during connection if the user's token is valid. The authentication module is added like this:
+It is possible to add an optional authentication module which checks during connection if the user's token is valid. It is done during the startup phase of the chat server (see section **Running the server** above).
 
-    chatServer.setAuth(authentication-module);
+To be compatible with this chat module, the auth module has to be a token-based authentication system, needs to have an asynchronous function called `checkTokenDirect(token)`, and tokens must be sent as a URL parameter named token, i.e. `?token=TOKEN`.
 
-where `authentication-module` is the variable that holds that module. To be compatible with this chat module, the auth module has to be a token-based authentication system, needs to have an asynchronous function called checkTokenDirect(token), and tokens must be sent as a URL parameter named token, i.e. `?token=TOKEN`.
+
+### Database suppport
+It is also possible to add a database module during the startup of the server, which is used if additional data about the chat users should be stored in a database.
+
+To be compatible with this chat module, the db module needs to have asynchronous `find` and `updateOne` methods. It is strongly recommended to use a Mongo database module.
 
 
 ### Chat protocol
