@@ -78,6 +78,10 @@ To be compatible with this chat module, the db module needs to have asynchronous
 - nick
     - Changes nickname
     - parameters: nickname
+- move
+    - Sends updated position (for use in graphical movement-based chat rooms)
+    - Also sends user image model if a database is being used to store that
+    - parameters: position
 
 #### Response format:
     {

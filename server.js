@@ -151,8 +151,17 @@ function setNick(ws, nickname) {
 
 
 
-function changeNick(ws, nickname) {
+async function changeNick(ws, nickname) {
     let oldnick = ('nickname' in ws) ? ws.nickname : "";
+
+    if (db) {
+        const result = await db.find("users", {nickname: nickname}, {}, 1);
+
+        if (result.length) {
+            sendMessage(ws, 'Nickname already taken');
+            return;
+        }
+    }
 
     ws.nickname = nickname;
 
@@ -163,7 +172,7 @@ function changeNick(ws, nickname) {
 
 
 
-function parseBroadcastMessage(ws, message) {
+async function parseBroadcastMessage(ws, message) {
     let obj;
 
     try {
@@ -175,6 +184,34 @@ function parseBroadcastMessage(ws, message) {
     }
 
     switch (obj.command) {
+        case "move":
+            if ('position' in obj.params && obj.params.position) {
+                let model = "";
+
+                if (db) {
+                    let nickname = ('nickname' in ws && ws.nickname) ? ws.nickname : "";
+
+                    db.updateOne("users", {'nickname': nickname}, {'position': obj.params.position});
+                    console.log("Position updated");
+
+                    const user = await db.find("users", {nickname: nickname}, {'model': 1}, 1);
+
+                    if (user.length) {
+                        model = user[0].model;
+                    }
+                }
+
+                let data = {
+                    position: obj.params.position,
+                    model: model,
+                };
+
+                broadcastExcept(ws, data);
+            } else {
+                console.log("Missing position");
+                sendMessage(ws, "Error: Missing position");
+            }
+            break;
         case "nick":
             if ('nickname' in obj.params && obj.params.nickname) {
                 changeNick(ws, obj.params.nickname);
