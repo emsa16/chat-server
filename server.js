@@ -237,6 +237,42 @@ async function parseBroadcastMessage(ws, message) {
 
 
 
+async function sendPlayerPositions(ws, nickname) {
+    const result = await db.find("users", {nickname: nickname}, {}, 1);
+
+    if (result.length) {
+        let user = result[0];
+
+        let data = {
+            position: user.position,
+            model: user.model
+        };
+
+        console.log("Sending out new player position to active players");
+        broadcastExcept(ws, data);
+    }
+
+    wss.clients.forEach(async (client) => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+            const nickname = ('nickname' in client && client.nickname) ? client.nickname : "";
+            const result = await db.find("users", {nickname: nickname}, {}, 1);
+
+            if (result.length) {
+                const user = result[0];
+                const data = {
+                    position: user.position,
+                    model: user.model
+                };
+
+                console.log("Sending active player positions to new player");
+                sendMessage(ws, data, "", nickname);
+            }
+        }
+    });
+}
+
+
+
 function manageBroadCastConn(ws, request) {
     console.log(`Connection received. Adding client using '${ws.protocol}' (total: ${wss.clients.size}).`);
 
@@ -246,6 +282,10 @@ function manageBroadCastConn(ws, request) {
     setNick(ws, nickname);
 
     broadcastExcept(ws, `${ws.nickname} has connected`, "server");
+
+    if (db) {
+        sendPlayerPositions(ws, nickname);
+    }
 
     ws.on("message", (message) => {
         console.log(`Received: ${message}`);
@@ -259,6 +299,10 @@ function manageBroadCastConn(ws, request) {
     ws.on("close", (code, reason) => {
         console.log(`Closing connection (remaining: ${wss.clients.size}): ${code} ${reason}`);
         broadcastExcept(ws, `${ws.nickname} has disconnected`, "server");
+        broadcastExcept(ws, {
+            action: "remove",
+            nickname: ws.nickname
+        }, "server");
     });
 }
 
