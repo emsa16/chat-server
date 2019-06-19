@@ -5,7 +5,7 @@
  */
 "use strict";
 
-let port, serverUrl, allowedClientUrl;
+let port, serverUrl, allowedClientUrl, auth, db;
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -26,15 +26,6 @@ app.use(function (req, res) {
     console.log(`HTTP request on ${req.url}`);
     res.send({ msg: "hello" });
 });
-
-
-
-let auth = "";
-
-//Sets optional token authentication module
-function setAuth(authMod) {
-    auth = authMod;
-}
 
 
 
@@ -274,10 +265,12 @@ wss.on("connection", (ws, request) => {
 });
 
 
-function start(dbwebbPort, wsServerUrl, wsLimitClientTo) {
+function start(dbwebbPort, wsServerUrl, wsLimitClientTo, authMod = "", dbMod = "") {
     port = dbwebbPort || process.env.WS_DBWEBB_PORT || 1337;
     serverUrl = wsServerUrl || process.env.WS_SERVER_URL || `ws://localhost:${port}`;
     allowedClientUrl = wsLimitClientTo || process.env.WS_LIMIT_CLIENT_TO || "";
+    auth = authMod; //Sets optional token authentication module
+    db = dbMod; //Sets optional database module
 
     // Start up server
     server.listen(port, () => {
@@ -290,6 +283,5 @@ function stop() {
 }
 
 module.exports = server;
-module.exports.setAuth = setAuth;
 module.exports.start = start;
 module.exports.stop = stop;
