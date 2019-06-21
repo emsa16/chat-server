@@ -5,7 +5,7 @@
  */
 "use strict";
 
-let port, serverUrl, allowedClientUrl, auth, db;
+let port, serverUrl, allowedClientUrl, auth, db, type;
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -82,6 +82,7 @@ function handleProtocols(protocols /*, request */) {
 }
 
 
+
 function noop() {}
 
 
@@ -154,20 +155,20 @@ function setNick(ws, nickname) {
 async function changeNick(ws, nickname) {
     let oldnick = ('nickname' in ws) ? ws.nickname : "";
 
-    if (db) {
-        const result = await db.find("users", {nickname: nickname}, {}, 1);
-
-        if (result.length) {
-            sendMessage(ws, 'Nickname already taken');
-            return;
-        }
-    }
-
     ws.nickname = nickname;
 
     console.log(`${oldnick} changed nick to ${nickname}`);
     broadcastExcept(ws, `${oldnick} changed nick to ${nickname}`, "server");
     sendMessage(ws, `Nick changed to ${nickname}`);
+
+    //The game component of the app needs a separate update
+    if ("game-chat" === type) {
+        broadcastExcept(ws, {
+            action: "update-nick",
+            old_nickname: oldnick,
+            new_nickname: ws.nickname
+        }, "server");
+    }
 }
 
 
@@ -185,9 +186,15 @@ async function parseBroadcastMessage(ws, message) {
 
     switch (obj.command) {
         case "move":
+            //This command is only usable in a game chat
+            if ("game-chat" !== type) {
+                break;
+            }
+
             if ('position' in obj.params && obj.params.position) {
                 let model = "";
 
+                //Update position to and get model from database
                 if (db) {
                     let nickname = ('nickname' in ws && ws.nickname) ? ws.nickname : "";
 
@@ -237,7 +244,7 @@ async function parseBroadcastMessage(ws, message) {
 
 
 
-async function sendPlayerPositions(ws, nickname) {
+async function broadCastNewPlayerPos(ws, nickname) {
     const result = await db.find("users", {nickname: nickname}, {}, 1);
 
     if (result.length) {
@@ -251,7 +258,11 @@ async function sendPlayerPositions(ws, nickname) {
         console.log("Sending out new player position to active players");
         broadcastExcept(ws, data);
     }
+}
 
+
+
+function sendPlayerRoster(ws) {
     wss.clients.forEach(async (client) => {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
             const nickname = ('nickname' in client && client.nickname) ? client.nickname : "";
@@ -265,7 +276,7 @@ async function sendPlayerPositions(ws, nickname) {
                 };
 
                 console.log("Sending active player positions to new player");
-                sendMessage(ws, data, "", nickname);
+                sendMessage(ws, data, "server", nickname);
             }
         }
     });
@@ -283,8 +294,9 @@ function manageBroadCastConn(ws, request) {
 
     broadcastExcept(ws, `${ws.nickname} has connected`, "server");
 
-    if (db) {
-        sendPlayerPositions(ws, nickname);
+    if (db && "game-chat" === type) {
+        broadCastNewPlayerPos(ws, nickname);
+        sendPlayerRoster(ws);
     }
 
     ws.on("message", (message) => {
@@ -299,10 +311,14 @@ function manageBroadCastConn(ws, request) {
     ws.on("close", (code, reason) => {
         console.log(`Closing connection (remaining: ${wss.clients.size}): ${code} ${reason}`);
         broadcastExcept(ws, `${ws.nickname} has disconnected`, "server");
-        broadcastExcept(ws, {
-            action: "remove",
-            nickname: ws.nickname
-        }, "server");
+
+        //The game component of the app needs a separate update
+        if ("game-chat" === type) {
+            broadcastExcept(ws, {
+                action: "remove",
+                nickname: ws.nickname
+            }, "server");
+        }
     });
 }
 
@@ -346,12 +362,14 @@ wss.on("connection", (ws, request) => {
 });
 
 
-function start(dbwebbPort, wsServerUrl, wsLimitClientTo, authMod = "", dbMod = "") {
+
+function start(dbwebbPort, wsServerUrl, wsLimitClientTo, authMod = "", dbMod = "", chatType = "default-chat") {
     port = dbwebbPort || process.env.WS_DBWEBB_PORT || 1337;
     serverUrl = wsServerUrl || process.env.WS_SERVER_URL || `ws://localhost:${port}`;
-    allowedClientUrl = wsLimitClientTo || process.env.WS_LIMIT_CLIENT_TO || "";
+    allowedClientUrl = wsLimitClientTo || process.env.WS_LIMIT_CLIENT_TO || false;
     auth = authMod; //Sets optional token authentication module
     db = dbMod; //Sets optional database module
+    type = chatType; //Needed to indicate the implementation of the module as it affects functionality
 
     // Start up server
     server.listen(port, () => {
@@ -359,9 +377,13 @@ function start(dbwebbPort, wsServerUrl, wsLimitClientTo, authMod = "", dbMod = "
     });
 }
 
+
+
 function stop() {
     server.close();
 }
+
+
 
 module.exports = server;
 module.exports.start = start;

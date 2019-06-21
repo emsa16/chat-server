@@ -21,14 +21,15 @@ Using the broadcast subprotocol requires that a nickname is added in the URL whe
 Include the following lines to run the chat server in your application:
 
     var chatServer = require('@emsa16/chat-server');
-    chatServer.start([dbwebbPort] [, wsServerUrl] [, wsLimitClientTo] [, authMod] [, dbMod]);
+    chatServer.start([dbwebbPort] [, wsServerUrl] [, wsLimitClientTo] [, authMod] [, dbMod] [, chatType]);
 
 The arguments to chatServer.start() are all optional and can be used to set the following:
 - `dbwebbPort` - Set server port (default: 1337)
 - `wsServerUrl` - Set server URL (default: ws://localhost:1337)
-- `wsLimitClientTo` - Set if wanting to block connections from anywhere else than specific client URL (default: "")
-- `authMod` - inject authentication module
-- `dbMod` - inject database module
+- `wsLimitClientTo` - Set if wanting to block connections from anywhere else than specific client URL (default: false - allows all client URLs)
+- `authMod` - inject authentication module (default: empty)
+- `dbMod` - inject database module (default: empty)
+- `chatType` - indicate what kind of chat server is needed. Currently implemented types are "default-chat" and "game-chat" (default: "default-chat")
 
 To run it as a separate process and with its output in a separate terminal, the above code can be put in a separate file, e.g. `chat-server.js` and run by executing a command like `node chat-server.js`.
 
@@ -38,7 +39,7 @@ Another option for running the chat server as a separate service is to install i
     $ cd chat-server
     $ npm install
 
-Now one of the following commands can be run:
+Now one of the following commands can be entered:
 
     $ npm start                 # Runs server in development mode
     $ npm run production        # Runs server in production mode
@@ -49,27 +50,7 @@ The following environment variables can be set by adding these before above comm
 - WS_LIMIT_CLIENT_TO="URL" - Set if wanting to block connections from anywhere else than specific client URL (default: "")
 
 
-### Authentication
-It is possible to add an optional authentication module which checks during connection if the user's token is valid. It is done during the startup phase of the chat server (see section **Running the server** above).
-
-To be compatible with this chat module, the auth module has to be a token-based authentication system, needs to have an asynchronous function called `checkTokenDirect(token)`, and tokens must be sent as a URL parameter named token, i.e. `?token=TOKEN`.
-
-
-### Database suppport
-It is also possible to add a database module during the startup of the server, which is used if additional data about the chat users should be stored in a database.
-
-To be compatible with this chat module, the db module needs to have asynchronous `find` and `updateOne` methods. It is strongly recommended to use a Mongo database module.
-
-
 ### Chat protocol
-
-#### Example
-    {
-        "command": "message",
-        "params": {
-            "message": "My first message"
-            }
-    }    
 
 #### Commands
 - message
@@ -78,10 +59,18 @@ To be compatible with this chat module, the db module needs to have asynchronous
 - nick
     - Changes nickname
     - parameters: nickname
-- move
-    - Sends updated position (for use in graphical movement-based chat rooms)
+- move (for game chats only)
+    - Sends updated position
     - Also sends user image model if a database is being used to store that
     - parameters: position
+
+#### Example message
+    {
+        "command": "message",
+        "params": {
+            "message": "My first message"
+            }
+    }    
 
 #### Response format:
     {
@@ -90,6 +79,18 @@ To be compatible with this chat module, the db module needs to have asynchronous
         "nickname": NICKNAME           # nickname of message author
         "data": DATA                   # message content
     }    
+
+
+### Authentication
+It is possible to add an optional authentication module which checks during connection attempts if the user's token is valid. It is done during the startup phase of the chat server (see section **Running the server** above).
+
+To be compatible with this chat module, the auth module has to be a token-based authentication system, needs to have an asynchronous function called `checkTokenDirect(token)` that returns an object containing a `status` key indicating authentication status, and tokens must be sent as a URL parameter named token, i.e. `?token=TOKEN`.
+
+
+### Database suppport
+It is also possible to add a database module during the startup of the server, which is used if additional data about the chat users should be stored in a database. This is currently only used in game chats.
+
+To be compatible with this chat module, the db module needs to have asynchronous `find` and `updateOne` methods. It is strongly recommended to use a Mongo database module.
 
 
 ### Testing
