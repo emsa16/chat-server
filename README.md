@@ -95,7 +95,7 @@ To be compatible with this chat module, the db module needs to have asynchronous
 
 ### Testing
 
-The following command runs the test suite, which consists of linters (htmlhint, stylelint and eslint) and Jest unit tests:
+The following command runs the test suite, which consists of linters (stylelint and eslint) and Jest unit tests:
 
     $ npm test
 
