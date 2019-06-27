@@ -380,6 +380,7 @@ function start(dbwebbPort, wsServerUrl, wsLimitClientTo, authMod = "", dbMod = "
 
 
 function stop() {
+    clearInterval(interval);
     server.close();
 }
 
