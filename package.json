@@ -12,12 +12,11 @@
     "express"
   ],
   "scripts": {
-    "pretest": "npm run htmlhint && npm run stylelint && npm run eslint",
+    "pretest": "npm run stylelint && npm run eslint",
     "test": "jest --coverage --detectOpenHandles --verbose --silent",
     "start": "node index.js",
     "production": "NODE_ENV='production' node index.js",
-    "clean": "rm -rf node_modules package-lock.json",
-    "htmlhint": "[ ! -f .htmlhintrc ] || htmlhint --ignore build/**,node_modules/**,coverage/** | grep -v 'Config loaded:'",
+    "clean": "rm -rf coverage node_modules package-lock.json",
     "stylelint": "[ ! -f .stylelintrc.json ] || stylelint **/*.css",
     "eslint": "[ ! -f .eslintrc.json ] || eslint ."
   },
@@ -45,7 +44,6 @@
   },
   "devDependencies": {
     "eslint": "^5.12.1",
-    "htmlhint": "^0.10.1",
     "jest": "^24.1.0",
     "stylelint": "^9.10.1",
     "supertest": "^4.0.2"
