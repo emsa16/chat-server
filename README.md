@@ -82,7 +82,7 @@ The following environment variables can be set by adding these before above comm
 
 
 ### Authentication
-It is possible to add an optional authentication module which checks during connection attempts if the user's token is valid. It is done during the startup phase of the chat server (see section **Running the server** above).
+It is possible to add an optional authentication module which checks during connection attempts if the user's token is valid. It is done during the startup phase of the chat server (see [Running the server](#running-the-server) above).
 
 To be compatible with this chat module, the auth module has to be a token-based authentication system, needs to have an asynchronous function called `checkTokenDirect(token)` that returns an object containing a `status` key indicating authentication status, and tokens must be sent as a URL parameter named token, i.e. `?token=TOKEN`.
 
