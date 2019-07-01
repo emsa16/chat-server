@@ -9,6 +9,7 @@ let port, serverUrl, allowedClientUrl, auth, db, type;
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
+const URL = require('url').URL;
 
 const app = express();
 const server = http.createServer(app);

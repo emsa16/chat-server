@@ -33,6 +33,11 @@ The arguments to chatServer.start() are all optional and can be used to set the 
 
 To run it as a separate process and with its output in a separate terminal, the above code can be put in a separate file, e.g. `chat-server.js` and run by executing a command like `node chat-server.js`.
 
+When starting the process from the command line, the following environment variables can be set by adding these:
+- WS_DBWEBB_PORT=XXXX - Set server port (default: 1337)
+- WS_SERVER_URL="URL" - Set server URL (default: ws://localhost:1337)
+- WS_LIMIT_CLIENT_TO="URL" - Set if wanting to block connections from anywhere else than specific client URL (default: "")
+
 Another option for running the chat server as a separate service is to install it from the Github repo directly:
 
     $ git clone https://github.com/emsa16/chat-server
@@ -43,11 +48,6 @@ Now one of the following commands can be entered:
 
     $ npm start                 # Runs server in development mode
     $ npm run production        # Runs server in production mode
-
-The following environment variables can be set by adding these before above commands:
-- WS_DBWEBB_PORT=XXXX - Set server port (default: 1337)
-- WS_SERVER_URL="URL" - Set server URL (default: ws://localhost:1337)
-- WS_LIMIT_CLIENT_TO="URL" - Set if wanting to block connections from anywhere else than specific client URL (default: "")
 
 
 ### Chat protocol
