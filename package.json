@@ -1,6 +1,6 @@
 {
   "name": "@emsa16/chat-server",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "WebSocket + Express chat server",
   "main": "server.js",
   "directories": {
