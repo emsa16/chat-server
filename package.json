@@ -40,7 +40,7 @@
   "homepage": "https://github.com/emsa16/chat-server#readme",
   "dependencies": {
     "express": "^4.16.4",
-    "ws": "^6.1.4"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "eslint": "^5.12.1",
