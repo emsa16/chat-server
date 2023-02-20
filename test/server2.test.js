@@ -1,4 +1,3 @@
-/*eslint no-undef: "off"*/
 const WebSocket = require("ws");
 
 require('../server');

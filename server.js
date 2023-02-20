@@ -1,4 +1,3 @@
-/*eslint max-len: "off", no-unused-vars: "off"*/
 /**
  * Server using Websockets and Express, supporting broadcast and echo
  * through use of subprotocols.
@@ -31,7 +30,8 @@ app.use(function (req, res) {
 
 
 async function verifyClient(info, callback) {
-    if ("sec-websocket-protocol" in info.req.headers && info.req.headers['sec-websocket-protocol'] == "broadcast") {
+    if ("sec-websocket-protocol" in info.req.headers &&
+        info.req.headers['sec-websocket-protocol'] == "broadcast") {
         if (allowedClientUrl && allowedClientUrl !== info.origin) {
             return callback(false, 403, 'Unauthorized: forbidden origin', '');
         }
@@ -199,7 +199,9 @@ async function parseBroadcastMessage(ws, message) {
                 if (db) {
                     let nickname = ('nickname' in ws && ws.nickname) ? ws.nickname : "";
 
-                    db.updateOne("users", {'nickname': nickname}, {'position': obj.params.position});
+                    db.updateOne("users",
+                        {'nickname': nickname},
+                        {'position': obj.params.position});
                     console.log("Position updated");
 
                     const user = await db.find("users", {nickname: nickname}, {'model': 1}, 1);
@@ -286,7 +288,9 @@ function sendPlayerRoster(ws) {
 
 
 function manageBroadCastConn(ws, request) {
-    console.log(`Connection received. Adding client using '${ws.protocol}' (total: ${wss.clients.size}).`);
+    console.log(
+        `Connection received. Adding client using '${ws.protocol}' (total: ${wss.clients.size}).`
+    );
 
     let parsedUrl = new URL(request.url, serverUrl);
     let nickname = parsedUrl.searchParams.get("nickname");
@@ -364,13 +368,19 @@ wss.on("connection", (ws, request) => {
 
 
 
-function start(port, wsServerUrl, wsLimitClientTo, authMod = "", dbMod = "", chatType = "default-chat") {
-    port = port || process.env.WS_PORT || 1337;
+function start(wsPort,
+    wsServerUrl,
+    wsLimitClientTo,
+    authMod = "",
+    dbMod = "",
+    chatType = "default-chat") {
+
+    port = wsPort || process.env.WS_PORT || 1337;
     serverUrl = wsServerUrl || process.env.WS_SERVER_URL || `ws://localhost:${port}`;
     allowedClientUrl = wsLimitClientTo || process.env.WS_LIMIT_CLIENT_TO || false;
     auth = authMod; //Sets optional token authentication module
     db = dbMod; //Sets optional database module
-    type = chatType; //Needed to indicate the implementation of the module as it affects functionality
+    type = chatType; //Indicates implementation type of module, affecting functionality
 
     // Start up server
     server.listen(port, () => {

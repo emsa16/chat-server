@@ -1,4 +1,3 @@
-/*eslint max-len: "off"*/
 /**
  * To setup a websocket connection, and nothing more.
  */
@@ -6,7 +5,7 @@
     "use strict";
 
     let websocket;
-    let serverUrl   = "ws://localhost:1337"; // Replace with your development or production chat server
+    let serverUrl   = "ws://localhost:1337"; // Replace with your chat server
 
     let connect     = document.getElementById("connect");
     let connectForm = document.getElementById("connect_form");
@@ -63,7 +62,7 @@
 
     function formatMessageOut(messageText) {
         let data = {"command": "message", "params": {"message": messageText}};
-        let re = /^\/([A-Za-z]+)\s*(\w*)/; // Regex matching '/' commands followed by text, e.g. /nick emil
+        let re = /^\/([A-Za-z]+)\s*(\w*)/; // matches '/[COMMAND] [VALUE]', e.g. /nick emil
         let result = re.exec(messageText);
 
         if (result && result.length > 1) {
