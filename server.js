@@ -364,8 +364,8 @@ wss.on("connection", (ws, request) => {
 
 
 
-function start(dbwebbPort, wsServerUrl, wsLimitClientTo, authMod = "", dbMod = "", chatType = "default-chat") {
-    port = dbwebbPort || process.env.WS_DBWEBB_PORT || 1337;
+function start(port, wsServerUrl, wsLimitClientTo, authMod = "", dbMod = "", chatType = "default-chat") {
+    port = port || process.env.WS_PORT || 1337;
     serverUrl = wsServerUrl || process.env.WS_SERVER_URL || `ws://localhost:${port}`;
     allowedClientUrl = wsLimitClientTo || process.env.WS_LIMIT_CLIENT_TO || false;
     auth = authMod; //Sets optional token authentication module

@@ -21,10 +21,10 @@ Using the broadcast subprotocol requires that a nickname is added in the URL whe
 Include the following lines to run the chat server in your application:
 
     var chatServer = require('@emsa16/chat-server');
-    chatServer.start([dbwebbPort] [, wsServerUrl] [, wsLimitClientTo] [, authMod] [, dbMod] [, chatType]);
+    chatServer.start([port] [, wsServerUrl] [, wsLimitClientTo] [, authMod] [, dbMod] [, chatType]);
 
 The arguments to chatServer.start() are all optional and can be used to set the following:
-- `dbwebbPort` - Set server port (default: 1337)
+- `port` - Set server port (default: 1337)
 - `wsServerUrl` - Set server URL (default: ws://localhost:1337)
 - `wsLimitClientTo` - Set if wanting to block connections from anywhere else than specific client URL (default: false - allows all client URLs)
 - `authMod` - inject authentication module (default: empty)
@@ -34,7 +34,7 @@ The arguments to chatServer.start() are all optional and can be used to set the 
 To run it as a separate process and with its output in a separate terminal, the above code can be put in a separate file, e.g. `chat-server.js` and run by executing a command like `node chat-server.js`.
 
 When starting the process from the command line, the following environment variables can be set by adding these:
-- WS_DBWEBB_PORT=XXXX - Set server port (default: 1337)
+- WS_PORT=XXXX - Set server port (default: 1337)
 - WS_SERVER_URL="URL" - Set server URL (default: ws://localhost:1337)
 - WS_LIMIT_CLIENT_TO="URL" - Set if wanting to block connections from anywhere else than specific client URL (default: "")
 
