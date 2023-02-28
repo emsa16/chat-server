@@ -4,8 +4,12 @@
 (function () {
     "use strict";
 
-    let websocket;
-    let serverUrl   = "ws://localhost:1337"; // Replace with your chat server
+    let ablyConnection;
+
+    const HOST = 'http://localhost:8888';
+    // const HOST = 'https://emsa-chat-api.netlify.app';
+    
+    const CHANNEL = "getting-started"; // TODO update
 
     let connect     = document.getElementById("connect");
     let connectForm = document.getElementById("connect_form");
@@ -78,7 +82,7 @@
                     data = {"command": command};
             }
         }
-        websocket.send(JSON.stringify(data));
+        return JSON.stringify(data);
     }
 
 
@@ -86,44 +90,39 @@
     /**
      * What to do when user clicks Connect
      */
-    connectForm.addEventListener("submit", function(event) {
+    connectForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
-        if (websocket && websocket.readyState !== 3) {
-            console.log("Websocket is already connected");
+        if (ablyConnection && ablyConnection.connection && ['connected', 'connecting'].includes(ablyConnection.connection.state)) {
+            console.log("Connection already established");
             return;
         }
 
-        let fullUrl = `${serverUrl}?nickname=${nickname.value}`;
+        const optionalClientId = "optionalClientId"; 
+        // When not provided in authUrl, a default will be used.
+        ablyConnection = new Ably.Realtime.Promise({ authUrl: `${HOST}/api/ably-token-request?clientId=${optionalClientId}` });
+        // TODO handle nickname on connection, old way: new WebSocket(`${serverUrl}?nickname=${nickname.value}`, 'broadcast')
+        await ablyConnection.connection.once("connected");
+        const channel = ablyConnection.channels.get(CHANNEL);
+        outputLog("You are now connected to chat.");
+        status.innerHTML = "Status: Connected";
+        close.style.color = "#000";
+        connect.style.color = "#D5DBDB";
+        nickname.value = "";
 
-        console.log(`Connecting to: ${fullUrl}`);
-        websocket = new WebSocket(fullUrl, 'broadcast');
+        await channel.subscribe((msg) => {
+            console.log("Received message", msg);
+            if (msg.data) {
+                parseIncomingMessage(msg.data);
+            }
+        });
 
-        websocket.onopen = function() {
-            console.log("The websocket is now open.");
-            console.log(websocket);
-            outputLog("You are now connected to chat.");
-            status.innerHTML = "Status: Connected";
-            close.style.color = "#000";
-            connect.style.color = "#D5DBDB";
-            nickname.value = "";
-        };
-
-        websocket.onmessage = function(event) {
-            console.log(`Receiving message: ${event.data}`);
-            console.log(event);
-            console.log(websocket);
-            parseIncomingMessage(event.data);
-        };
-
-        websocket.onclose = function() {
-            console.log("The websocket is now closed.");
-            console.log(websocket);
+        ablyConnection.connection.on('closed', () => {
             outputLog("Chat connection is now closed.");
             status.innerHTML = "Status: Disconnected";
             connect.style.color = "#000";
             close.style.color = "#D5DBDB";
-        };
+        });
     }, false);
 
 
@@ -134,15 +133,23 @@
 
         let messageText = message.value;
 
-        if (!websocket || websocket.readyState === 3) {
-            console.log("The websocket is not connected to a server.");
+        if (!ablyConnection || !ablyConnection.connection || ablyConnection.connection.state !== 'connected') {
             outputLog("You are not connected to the chat.");
-        } else {
-            formatMessageOut(messageText);
-            console.log(`Sending message: ${messageText}`);
-            outputLog(`You: ${messageText}`);
-            message.value = "";
+            return;
         }
+
+        fetch(`${HOST}/api/send-message`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: formatMessageOut(messageText)
+        })
+            .then(() => {
+                outputLog(`You: ${messageText}`);
+                message.value = "";
+            })
+            .catch(error => { console.error(error) });
     });
 
 
@@ -151,14 +158,12 @@
      * What to do when user clicks Close connection.
      */
     close.addEventListener("click", function(/*event*/) {
-        if (!websocket || websocket.readyState === 3) {
-            console.log("Websocket is already closed");
+        if (!ablyConnection || !ablyConnection.connection || !['connected', 'connecting'].includes(ablyConnection.connection.state)) {
+            console.log("Chat connection is already closed");
             return;
         }
 
-        console.log("Closing websocket.");
-        websocket.close(1000, "Client closing connection by intention.");
-        console.log(websocket);
+        ablyConnection.close();
         outputLog("Closing chat.");
     });
 })();
