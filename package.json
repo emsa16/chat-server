@@ -1,7 +1,7 @@
 {
   "name": "@emsa16/chat-server",
   "version": "5.0.2",
-  "description": "WebSocket + Express chat server",
+  "description": "Chat server implemented with WebSocket and Express",
   "main": "server.js",
   "directories": {
     "test": "test"
@@ -18,7 +18,8 @@
     "production": "NODE_ENV='production' node index.js",
     "clean": "rm -rf coverage node_modules package-lock.json",
     "stylelint": "[ ! -f .stylelintrc.json ] || stylelint **/*.css",
-    "eslint": "[ ! -f .eslintrc.json ] || eslint ."
+    "eslint": "[ ! -f .eslintrc.json ] || eslint .",
+    "eslint-fix": "[ ! -f .eslintrc.json ] || eslint --fix ."
   },
   "jest": {
     "collectCoverageFrom": [

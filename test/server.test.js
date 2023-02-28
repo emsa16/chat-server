@@ -13,18 +13,13 @@ describe('Testing chat server', () => {
         require('../server').stop();
     });
 
-    test('HTTP request root path', async () => {
-        const response = await request(server).get('/');
-
-        expect(response.statusCode).toBe(200);
-        expect(response.body.msg).toBe('hello');
-    });
-
-    test('HTTP request random path', async () => {
+    test('should respond to HTTP requests', async () => {
         const response = await request(server).get('/foo/bar');
 
         expect(response.statusCode).toBe(200);
-        expect(response.body.msg).toBe('hello');
+        expect(response.body.message).toBe(
+            'This is a Websocket server, please use ws protocol to connect'
+        );
     });
 
     test('Websocket echo server - message echoes back', done => {

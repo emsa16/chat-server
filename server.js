@@ -1,38 +1,26 @@
 /**
- * Server using Websockets and Express, supporting broadcast and echo
- * through use of subprotocols.
+ * Server using Websockets and Express
+ * Support for broadcast and echo subprotocols
  */
 "use strict";
 
-let port, serverUrl, allowedClientUrl, auth, db, type;
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
 const URL = require('url').URL;
 
-const app = express();
-const server = http.createServer(app);
-const wss = new WebSocket.Server({
-    server: server,
-    clientTracking: true, // keep track on connected clients,
-    verifyClient: verifyClient,
-    handleProtocols: handleProtocols // Manage what subprotocol to use.
-});
+const DEFAULT_PORT = 1337;
+const DEFAULT_SERVER_URL = 'ws://localhost';
+
+let serverUrl, limitClientToUrl, auth, db, type;
 
 
 
-// Answer on all http requests
-app.use(function (req, res) {
-    console.log(`HTTP request on ${req.url}`);
-    res.send({ msg: "hello" });
-});
-
-
-
+// Checks user auth, verifies client URL and provided nickname
 async function verifyClient(info, callback) {
     if ("sec-websocket-protocol" in info.req.headers &&
         info.req.headers['sec-websocket-protocol'] == "broadcast") {
-        if (allowedClientUrl && allowedClientUrl !== info.origin) {
+        if (limitClientToUrl && limitClientToUrl !== info.origin) {
             return callback(false, 403, 'Unauthorized: forbidden origin', '');
         }
 
@@ -74,7 +62,7 @@ function handleProtocols(protocols /*, request */) {
             case "broadcast":
                 return "broadcast";
             case "echo":
-                //Intentional fallthrough
+                // Intentional fallthrough
             default:
                 return "echo";
         }
@@ -153,21 +141,21 @@ function setNick(ws, nickname) {
 
 
 
-async function changeNick(ws, nickname) {
-    let oldnick = ('nickname' in ws) ? ws.nickname : "";
+async function changeNick(ws, newNick) {
+    let oldNick = ('nickname' in ws) ? ws.nickname : "";
 
-    ws.nickname = nickname;
+    ws.nickname = newNick;
 
-    console.log(`${oldnick} changed nick to ${nickname}`);
-    broadcastExcept(ws, `${oldnick} changed nick to ${nickname}`, "server");
-    sendMessage(ws, `Nick changed to ${nickname}`);
+    console.log(`${oldNick} changed nick to ${newNick}`);
+    broadcastExcept(ws, `${oldNick} changed nick to ${newNick}`, "server");
+    sendMessage(ws, `Nick changed to ${newNick}`);
 
-    //The game component of the app needs a separate update
+    // The game chat version needs a separate update
     if ("game-chat" === type) {
         broadcastExcept(ws, {
             action: "update-nick",
-            old_nickname: oldnick,
-            new_nickname: ws.nickname
+            old_nickname: oldNick,
+            new_nickname: newNick
         }, "server");
     }
 }
@@ -187,7 +175,7 @@ async function parseBroadcastMessage(ws, message) {
 
     switch (obj.command) {
         case "move":
-            //This command is only usable in a game chat
+            // This command is only usable in a game chat
             if ("game-chat" !== type) {
                 break;
             }
@@ -195,7 +183,7 @@ async function parseBroadcastMessage(ws, message) {
             if ('position' in obj.params && obj.params.position) {
                 let model = "";
 
-                //Update position to and get model from database
+                // Update position to and get model from database
                 if (db) {
                     let nickname = ('nickname' in ws && ws.nickname) ? ws.nickname : "";
 
@@ -317,7 +305,7 @@ function manageBroadCastConn(ws, request) {
         console.log(`Closing connection (remaining: ${wss.clients.size}): ${code} ${reason}`);
         broadcastExcept(ws, `${ws.nickname} has disconnected`, "server");
 
-        //The game component of the app needs a separate update
+        // The game chat version needs a separate update
         if ("game-chat" === type) {
             broadcastExcept(ws, {
                 action: "remove",
@@ -348,6 +336,54 @@ function manageEchoConn(ws) {
 
 
 
+function start(wsPort,
+    wsServerUrl,
+    wsLimitClientTo,
+    authMod,
+    dbMod,
+    chatType) {
+    const port = wsPort || process.env.WS_PORT || DEFAULT_PORT;
+
+    serverUrl = wsServerUrl || process.env.WS_SERVER_URL || `${DEFAULT_SERVER_URL}:${port}`;
+    limitClientToUrl = wsLimitClientTo || process.env.WS_LIMIT_CLIENT_TO || "";
+    auth = authMod || ""; // Sets optional token authentication module
+    db = dbMod || ""; // Sets optional database module
+    type = chatType || "default-chat"; // Indicates implementation type of module
+
+    // Start up server
+    server.listen(port, () => {
+        console.log(`Chat server is listening on port ${port}`);
+    });
+}
+
+
+
+function stop() {
+    clearInterval(interval);
+    server.close();
+}
+
+
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({
+    server,
+    clientTracking: true, // track connected clients
+    verifyClient,
+    handleProtocols // Manage what subprotocol to use.
+});
+
+
+
+// Answer on all HTTP requests
+app.use(function (req, res) {
+    console.log(`HTTP request on ${req.url}`);
+    res.send({ message: "This is a Websocket server, please use ws protocol to connect" });
+});
+
+
+
 // Setup for websocket requests.
 // Docs: https://github.com/websockets/ws/blob/master/doc/ws.md
 wss.on("connection", (ws, request) => {
@@ -359,41 +395,12 @@ wss.on("connection", (ws, request) => {
             manageBroadCastConn(ws, request);
             break;
         case "echo":
-            //Intentional fallthrough
+            // Intentional fallthrough
         default:
             manageEchoConn(ws);
             break;
     }
 });
-
-
-
-function start(wsPort,
-    wsServerUrl,
-    wsLimitClientTo,
-    authMod = "",
-    dbMod = "",
-    chatType = "default-chat") {
-
-    port = wsPort || process.env.WS_PORT || 1337;
-    serverUrl = wsServerUrl || process.env.WS_SERVER_URL || `ws://localhost:${port}`;
-    allowedClientUrl = wsLimitClientTo || process.env.WS_LIMIT_CLIENT_TO || false;
-    auth = authMod; //Sets optional token authentication module
-    db = dbMod; //Sets optional database module
-    type = chatType; //Indicates implementation type of module, affecting functionality
-
-    // Start up server
-    server.listen(port, () => {
-        console.log(`chat-server is listening on port ${port}`);
-    });
-}
-
-
-
-function stop() {
-    clearInterval(interval);
-    server.close();
-}
 
 
 
