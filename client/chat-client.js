@@ -4,7 +4,7 @@
 (function () {
     "use strict";
 
-    let ablyConnection;
+    let ably;
 
     const HOST = 'http://localhost:8888';
     // const HOST = 'https://emsa-chat-api.netlify.app';
@@ -93,17 +93,17 @@
     connectForm.addEventListener("submit", async function(event) {
         event.preventDefault();
 
-        if (ablyConnection && ablyConnection.connection && ['connected', 'connecting'].includes(ablyConnection.connection.state)) {
+        if (ably && ably.connection && ['connected', 'connecting'].includes(ably.connection.state)) {
             console.log("Connection already established");
             return;
         }
 
         const optionalClientId = "optionalClientId"; 
         // When not provided in authUrl, a default will be used.
-        ablyConnection = new Ably.Realtime.Promise({ authUrl: `${HOST}/api/ably-token-request?clientId=${optionalClientId}` });
+        ably = new Ably.Realtime.Promise({ authUrl: `${HOST}/api/ably-token-request?clientId=${optionalClientId}` });
         // TODO handle nickname on connection, old way: new WebSocket(`${serverUrl}?nickname=${nickname.value}`, 'broadcast')
-        await ablyConnection.connection.once("connected");
-        const channel = ablyConnection.channels.get(CHANNEL);
+        await ably.connection.once("connected");
+        const channel = ably.channels.get(CHANNEL);
         outputLog("You are now connected to chat.");
         status.innerHTML = "Status: Connected";
         close.style.color = "#000";
@@ -117,7 +117,7 @@
             }
         });
 
-        ablyConnection.connection.on('closed', () => {
+        ably.connection.on('closed', () => {
             outputLog("Chat connection is now closed.");
             status.innerHTML = "Status: Disconnected";
             connect.style.color = "#000";
@@ -133,7 +133,7 @@
 
         let messageText = message.value;
 
-        if (!ablyConnection || !ablyConnection.connection || ablyConnection.connection.state !== 'connected') {
+        if (!ably || !ably.connection || ably.connection.state !== 'connected') {
             outputLog("You are not connected to the chat.");
             return;
         }
@@ -158,12 +158,12 @@
      * What to do when user clicks Close connection.
      */
     close.addEventListener("click", function(/*event*/) {
-        if (!ablyConnection || !ablyConnection.connection || !['connected', 'connecting'].includes(ablyConnection.connection.state)) {
+        if (!ably || !ably.connection || !['connected', 'connecting'].includes(ably.connection.state)) {
             console.log("Chat connection is already closed");
             return;
         }
 
-        ablyConnection.close();
+        ably.close();
         outputLog("Closing chat.");
     });
 })();
