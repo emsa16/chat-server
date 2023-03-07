@@ -45,11 +45,11 @@
         let msg;
 
         try {
-            msg = JSON.parse(message);
+            msg = typeof message == 'string' ? JSON.parse(message) : message;
         } catch (error) {
             console.log(`Invalid JSON: ${error}`);
             return;
-        }
+        }    
 
         let data = ("data" in msg) ? msg.data : "";
         let nick = ("nickname" in msg && msg.nickname) ? msg.nickname : "anonymous";
@@ -149,8 +149,10 @@
             },
             body: formatMessageOut(messageText)
         })
-            .then(() => {
+            .then((response) => response.json())
+            .then((response) => {
                 outputLog(`You: ${messageText}`);
+                parseIncomingMessage(response);
                 message.value = "";
             })
             .catch(error => { console.error(error) });
