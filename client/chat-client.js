@@ -11,6 +11,8 @@
     
     const CHANNEL = "getting-started"; // TODO update
 
+    let user;
+
     let connect     = document.getElementById("connect");
     let connectForm = document.getElementById("connect_form");
     let nickname    = document.getElementById("nickname");
@@ -53,7 +55,7 @@
         let nick = ("nickname" in msg && msg.nickname) ? msg.nickname : "anonymous";
         let origin = ("origin" in msg && msg.origin) ? msg.origin : "server";
 
-        if (data) {
+        if (data && user !== nick) {
             if ("server" == origin) {
                 outputLog(`Server: ${data}`);
             } else {
@@ -65,7 +67,7 @@
 
 
     function formatMessageOut(messageText) {
-        let data = {"command": "message", "params": {"message": messageText}};
+        let data = {command: "message", params: {message: messageText}, sender: user};
         let re = /^\/([A-Za-z]+)\s*(\w*)/; // matches '/[COMMAND] [VALUE]', e.g. /nick emil
         let result = re.exec(messageText);
 
@@ -76,10 +78,11 @@
             switch (command) {
                 case 'nick':
                     nick = result[2] ? result[2]: "";
-                    data = {"command": "nick", "params": {"nickname": nick}};
+                    data = {"command": "nick", "params": {"nickname": nick}, sender: user};
+                    user = nick;
                     break;
                 default:
-                    data = {"command": command};
+                    data = {command, sender: user};
             }
         }
         return JSON.stringify(data);
@@ -108,6 +111,7 @@
         status.innerHTML = "Status: Connected";
         close.style.color = "#000";
         connect.style.color = "#D5DBDB";
+        user = nickname.value;
         nickname.value = "";
 
         await channel.subscribe((msg) => {
