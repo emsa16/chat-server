@@ -110,10 +110,11 @@
         const channel = ably.channels.get(CHANNEL);
         outputLog("You are now connected to chat.");
         status.innerHTML = "Status: Connected";
-        close.style.color = "#000";
-        connect.style.color = "#D5DBDB";
+        close.removeAttribute("disabled");
+        connect.setAttribute("disabled", "");
         user = nickname.value;
-        nickname.value = ""; // TODO disable input when connected
+        nickname.value = "";
+        nickname.setAttribute("disabled", "");
         outputLog(`Nickname set to ${user}.`);
 
         await channel.subscribe((msg) => {
@@ -126,8 +127,9 @@
         ably.connection.on('closed', () => {
             outputLog("Chat connection is now closed.");
             status.innerHTML = "Status: Disconnected";
-            connect.style.color = "#000";
-            close.style.color = "#D5DBDB";
+            connect.removeAttribute("disabled");
+            close.setAttribute("disabled", "");
+            nickname.removeAttribute("disabled");
         });
     }, false);
 
