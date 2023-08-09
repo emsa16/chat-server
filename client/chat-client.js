@@ -68,20 +68,19 @@
 
 
 
-    function formatMessageOut(messageText) {
-        let data = {command: "message", params: {message: messageText}, sender: user};
+    function formatMessageOut(message) {
+        let data = {command: "message", params: {message}, sender: user};
         let re = /^\/([A-Za-z]+)\s*(\w*)/; // matches '/[COMMAND] [VALUE]', e.g. /nick emil
-        let result = re.exec(messageText);
+        let result = re.exec(message);
 
         if (result && result.length > 1) {
-            let nick;
             let command = result[1];
 
             switch (command) {
                 case 'nick':
-                    nick = result[2] ? result[2]: "";
-                    data = {"command": "nick", "params": {"nickname": nick}, sender: user};
-                    user = nick;
+                    const nickname = result[2] || "";
+                    data = {command, params: {nickname}, sender: user};
+                    user = nickname;
                     break;
                 default:
                     data = {command, sender: user};
@@ -116,6 +115,11 @@
 
         if (ably && ably.connection && ['connected', 'connecting'].includes(ably.connection.state)) {
             console.log("Connection already established");
+            return;
+        }
+
+        if (!nickname.value) {
+            outputLog("You need a nickname to connect to chat");
             return;
         }
 
@@ -166,7 +170,7 @@
 
         const handleResponse = (response) => {
             outputLog(`You: ${message}`);
-                parseIncomingMessage(response);
+            parseIncomingMessage(response);
             messageEl.value = "";
         }
 
