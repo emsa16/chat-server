@@ -10,6 +10,8 @@
     // const HOST = 'https://emsa-chat-api.netlify.app';
     
     const CHANNEL = "getting-started"; // TODO update
+    const ABLY_TOKEN_REQUEST_ENDPOINT = "/api/ably-token-request";
+    const SEND_MESSAGE_ENDPOINT = "/api/send-message";
 
     let user;
 
@@ -102,9 +104,8 @@
         }
 
         const optionalClientId = "optionalClientId"; 
-        // When not provided in authUrl, a default will be used.
-        ably = new Ably.Realtime.Promise({ authUrl: `${HOST}/api/ably-token-request?clientId=${optionalClientId}` });
-        // TODO handle nickname on connection, old way: new WebSocket(`${serverUrl}?nickname=${nickname.value}`, 'broadcast')
+        // When not provided in authUrl, a default will be used. <- VAD? client id??
+        ably = new Ably.Realtime.Promise({ authUrl: `${HOST}${ABLY_TOKEN_REQUEST_ENDPOINT}?clientId=${optionalClientId}` });
         await ably.connection.once("connected");
         const channel = ably.channels.get(CHANNEL);
         outputLog("You are now connected to chat.");
@@ -112,7 +113,8 @@
         close.style.color = "#000";
         connect.style.color = "#D5DBDB";
         user = nickname.value;
-        nickname.value = "";
+        nickname.value = ""; // TODO disable input when connected
+        outputLog(`Nickname set to ${user}.`);
 
         await channel.subscribe((msg) => {
             console.log("Received message", msg);
@@ -142,7 +144,7 @@
             return;
         }
 
-        fetch(`${HOST}/api/send-message`, {
+        fetch(`${HOST}${SEND_MESSAGE_ENDPOINT}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
