@@ -10,8 +10,8 @@
     // const HOST = 'https://emsa-chat-api.netlify.app';
     
     const CHANNEL = "getting-started"; // TODO update
-    const ABLY_TOKEN_REQUEST_ENDPOINT = "/api/ably-token-request";
-    const SEND_MESSAGE_ENDPOINT = "/api/send-message";
+    const ABLY_TOKEN_REQUEST_ENDPOINT = `${HOST}/api/ably-token-request`;
+    const SEND_MESSAGE_ENDPOINT = `${HOST}/api/send-message`;
 
     let user;
 
@@ -19,7 +19,7 @@
     let connectForm = document.getElementById("connect_form");
     let nickname    = document.getElementById("nickname");
     let messageForm = document.getElementById("message_form");
-    let message     = document.getElementById("message");
+    let messageEl   = document.getElementById("message");
     let close       = document.getElementById("close");
     let output      = document.getElementById("output");
     let status      = document.getElementById("status");
@@ -92,6 +92,22 @@
 
 
 
+    function sendMessage(message, handleResponse = () => {}) {
+        fetch(`${SEND_MESSAGE_ENDPOINT}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: formatMessageOut(message)
+        })
+            .then((response) => response.json())
+            .then(handleResponse)
+            .catch(error => { console.error(error) });
+
+    }
+
+
+
     /**
      * What to do when user clicks Connect
      */
@@ -105,7 +121,7 @@
 
         const optionalClientId = "optionalClientId"; 
         // When not provided in authUrl, a default will be used. <- VAD? client id??
-        ably = new Ably.Realtime.Promise({ authUrl: `${HOST}${ABLY_TOKEN_REQUEST_ENDPOINT}?clientId=${optionalClientId}` });
+        ably = new Ably.Realtime.Promise({ authUrl: `${ABLY_TOKEN_REQUEST_ENDPOINT}?clientId=${optionalClientId}` });
         await ably.connection.once("connected");
         const channel = ably.channels.get(CHANNEL);
         outputLog("You are now connected to chat.");
@@ -116,6 +132,7 @@
         nickname.value = "";
         nickname.setAttribute("disabled", "");
         outputLog(`Nickname set to ${user}.`);
+        sendMessage('/connect');
 
         await channel.subscribe((msg) => {
             console.log("Received message", msg);
@@ -125,6 +142,7 @@
         });
 
         ably.connection.on('closed', () => {
+            sendMessage('/disconnect');
             outputLog("Chat connection is now closed.");
             status.innerHTML = "Status: Disconnected";
             connect.removeAttribute("disabled");
@@ -139,27 +157,20 @@
     messageForm.addEventListener('submit', function(event) {
         event.preventDefault();
 
-        let messageText = message.value;
+        let message = messageEl.value;
 
         if (!ably || !ably.connection || ably.connection.state !== 'connected') {
             outputLog("You are not connected to the chat.");
             return;
         }
 
-        fetch(`${HOST}${SEND_MESSAGE_ENDPOINT}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: formatMessageOut(messageText)
-        })
-            .then((response) => response.json())
-            .then((response) => {
-                outputLog(`You: ${messageText}`);
+        const handleResponse = (response) => {
+            outputLog(`You: ${message}`);
                 parseIncomingMessage(response);
-                message.value = "";
-            })
-            .catch(error => { console.error(error) });
+            messageEl.value = "";
+        }
+
+        sendMessage(message, handleResponse);
     });
 
 
