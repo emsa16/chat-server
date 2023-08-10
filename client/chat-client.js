@@ -123,9 +123,7 @@
             return;
         }
 
-        const optionalClientId = "optionalClientId"; 
-        // When not provided in authUrl, a default will be used. <- VAD? client id??
-        ably = new Ably.Realtime.Promise({ authUrl: `${ABLY_TOKEN_REQUEST_ENDPOINT}?clientId=${optionalClientId}` });
+        ably = new Ably.Realtime.Promise({ authUrl: `${ABLY_TOKEN_REQUEST_ENDPOINT}` });
         await ably.connection.once("connected");
         const channel = ably.channels.get(CHANNEL);
         outputLog("You are now connected to chat.");
