@@ -9,7 +9,7 @@
     const HOST = 'http://localhost:8888';
     // const HOST = 'https://emsa-chat-api.netlify.app';
     
-    const CHANNEL = "getting-started"; // TODO update
+    const CHANNEL = "chat";
     const ABLY_TOKEN_REQUEST_ENDPOINT = `${HOST}/api/ably-token-request`;
     const SEND_MESSAGE_ENDPOINT = `${HOST}/api/send-message`;
 
